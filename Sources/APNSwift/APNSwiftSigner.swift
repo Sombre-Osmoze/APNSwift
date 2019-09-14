@@ -53,8 +53,9 @@ public struct APNSwiftSigner {
         }
         defer { ECDSA_SIG_free(.init(sig)) }
 
-        var r : UnsafePointer<BIGNUM>? = nil
-        var s : UnsafePointer<BIGNUM>? = nil
+
+        var r : OpaquePointer? = nil
+        var s : OpaquePointer? = nil
         
         // as this method is `get0` there is no requirement to free those pointers: ECDSA_SIG will free them for us.
         CAPNSOpenSSL_ECDSA_SIG_get0(.init(sig), &r, &s)
