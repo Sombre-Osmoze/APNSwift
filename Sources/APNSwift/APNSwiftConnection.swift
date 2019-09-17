@@ -72,7 +72,9 @@ public final class APNSwiftConnection {
         self.multiplexer = multiplexer
         self.configuration = configuration
     }
-    
+
+	private let bufferAllocator : ByteBufferAllocator = .init()
+
     /**
      APNSwiftConnection send method. Sends a notification to the desired deviceToken.
      - Parameter notification: the notification meta data and alert to send.
@@ -84,9 +86,9 @@ public final class APNSwiftConnection {
      - Parameter collapseIdentifier: a collapse identifier to use for grouping notifications
      - Parameter topic: the bundle identifier that this notification belongs to.
      
-     For more information see:
+     - note: For more information see:
      [Retrieve Your App's Device Token](https://developer.apple.com/documentation/usernotifications/registering_your_app_with_apns#2942135)
-     ### Usage Example: ###
+	### Usage Example: ###
      ```
      let apns = APNSwiftConnection.connect()
      let expiry = Date().addingTimeInterval(5)
@@ -109,8 +111,8 @@ public final class APNSwiftConnection {
             
             let responsePromise = channel.eventLoop.makePromise(of: Void.self)
             let data: Data = try! encoder.encode(notification)
-            
-            var buffer = ByteBufferAllocator().buffer(capacity: data.count)
+
+            var buffer = bufferAllocator.buffer(capacity: data.count)
             buffer.writeBytes(data)
             let context = APNSwiftRequestContext(
                 request: buffer,
