@@ -76,7 +76,41 @@ cc94a66VttRZgVg6jE/ju+2mdHP7JWLmcQ==
         let sig = try signer.sign(digest: try jwt.getDigest().fixedDigest)
         XCTAssertEqual(sig.readableBytes, 64) // len(r) + len(s) == 64 byte
     }
-    
+
+	/// This test will measure the signing perfomance.
+	/// - note: It's a important part of the push notification process because every notification has to be sign so losing perfomance here can be a problem in producion where a huge number of notification is made.
+	func testJWTSigningPerfomace() throws {
+
+		// Preparing the test…
+
+		let teamID = "8RX5AF8F6Z"
+		let keyID = "9N8238KQ6Z"
+		let date = Date()
+		let jwt = APNSwiftJWT(keyID: keyID, teamID: teamID, issueDate: date, expireDuration: 10.0)
+
+		let privateKey = """
+-----BEGIN EC PRIVATE KEY-----
+MHcCAQEEIEY5/amzr1QgHrLNZ8eHu926YERGWqB6QaDpNFcGxjsToAoGCCqGSM49
+AwEHoUQDQgAEdbP7WQ/U4e5/CAqoBxatQb/5CEgJ070yMNGmWg5O6v2Q4M0l4CXK
+cc94a66VttRZgVg6jE/ju+2mdHP7JWLmcQ==
+-----END EC PRIVATE KEY-----
+"""
+		var buffer = ByteBufferAllocator().buffer(capacity: privateKey.count)
+		buffer.writeString(privateKey)
+
+		let signer = try APNSwiftSigner(buffer: buffer)
+
+		// Mesuring perfomace…
+		self.measure {
+			do {
+				_ = try signer.sign(digest: try jwt.getDigest().fixedDigest)
+			} catch {
+				XCTFail("Can't mesure performace because: \(error)")
+			}
+		}
+
+	}
+
     static var allTests = [
         ("testJWTEncodingAndSign", testJWTEncoding),
         ("testJWTSigning", testJWTSigning),
